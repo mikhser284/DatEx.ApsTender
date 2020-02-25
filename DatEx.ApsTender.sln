@@ -7,7 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DatEx.ApsTender.Proxy", "Da
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DatEx.ApsTender.Test.CUI", "DatEx.ApsTender.Test.CUI\DatEx.ApsTender.Test.CUI.csproj", "{A815D423-7358-441A-8A2E-034CFD13DDE1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatEx.ApsTender", "DatEx.ApsTender\DatEx.ApsTender.csproj", "{1AE1F493-FEE2-47CA-A7CF-880D5AC799E2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DatEx.ApsTender", "DatEx.ApsTender\DatEx.ApsTender.csproj", "{1AE1F493-FEE2-47CA-A7CF-880D5AC799E2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{23A4AA42-987B-46EE-A2BF-B6D02E25A708}"
+	ProjectSection(SolutionItems) = preProject
+		_Documentation\API. APS tender. Rest services V2 2017.11.21.pdf = _Documentation\API. APS tender. Rest services V2 2017.11.21.pdf
+		_Documentation\API. APS tender. Soap services 2017.11.10.pdf = _Documentation\API. APS tender. Soap services 2017.11.10.pdf
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
