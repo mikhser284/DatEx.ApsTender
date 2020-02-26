@@ -3,7 +3,7 @@ using System;
 
 namespace DatEx.ApsTender.DataModel
 {
-    public class QueryResult<T>
+    public class RequestResult<T>
     {
         /// <summary> Является ли запрос успешно выполненным </summary>
         [JsonProperty("success", Order = 1)]
