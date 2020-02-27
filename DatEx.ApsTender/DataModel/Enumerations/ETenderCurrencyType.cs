@@ -3,7 +3,7 @@
 namespace DatEx.ApsTender.DataModel
 {
     /// <summary> Валюта тендера </summary>
-    public enum ECurrencyType
+    public enum ETenderCurrencyType
     {
         /// <summary> Евро </summary>
         [EnumMember(Value = "EUR")]

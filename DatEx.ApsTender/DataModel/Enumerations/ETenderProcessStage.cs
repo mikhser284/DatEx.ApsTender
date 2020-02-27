@@ -5,7 +5,7 @@ using System.Text;
 namespace DatEx.ApsTender.DataModel
 {
     /// <summary> Стадия тендерного процесса </summary>
-    public enum EStageOfTenderProcess
+    public enum ETenderProcessStage
     {
         /// <summary> Ст.1 • Паспорт тендера </summary>
         St1_PassportSetting = 1,

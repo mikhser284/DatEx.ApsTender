@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using DatEx.ApsTender.DataModel;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -63,7 +65,7 @@ namespace DatEx.ApsTender
             return GetAsData<RequestResult<TenderData>>("tender/get".AsParametrizedHttpRequest(parameters));
         }
 
-        public TendersList_RequestResult GetTendersOnStage(EStageOfTenderProcess? stageOfTenderProcess = null, Int32 itemsPerPage = 10_000)
+        public TendersList_RequestResult GetTendersOnStage(ETenderProcessStage? stageOfTenderProcess = null, Int32 itemsPerPage = 10_000)
         {
             List<String> parameters = new List<string>();
             parameters.AddHttpParameter("process", stageOfTenderProcess);            
@@ -72,15 +74,54 @@ namespace DatEx.ApsTender
             return GetAsData<TendersList_RequestResult>("tender/listProcess".AsParametrizedHttpRequest(parameters));
         }
 
-        public ClosedTenders_RequestResult  GetTenders_ClosedTenders()
+        public class TenderState
         {
-            return GetAsData<ClosedTenders_RequestResult>("tender/listClosed?offset=2017-01-01&limit=1000");            
+            public Int32 TenderNo { get; set; }
+            public ETenderProcessStage ProcessState { get; set; }
+
+            public TenderState(Int32 tenderNo, Int32 processState)
+            {
+                TenderNo = tenderNo;
+                ProcessState = (ETenderProcessStage)processState;
+            }
+        }
+
+        public List<TenderState> GetTendersAndTheirStates(Int32 itemsPerPage = 10_000)
+        {
+            Task<HttpResponseMessage>[] requests = new Task<HttpResponseMessage>[10];
+            for(Int32 i = 0; i <= 9 ; i++)
+            {
+                Int32 processStage = i;
+                requests[i] = HttpClient.GetAsync($"tender/listProcess?process={processStage}&limit={itemsPerPage}");
+            }
+            Task.WaitAll(requests);
+            List<TenderState> tendersAndStates = new List<TenderState>();
+            for(Int32 i = 0; i <= 9; i++)
+            {
+                HttpResponseMessage response = requests[i].Result;
+                response.EnsureSuccessStatusCode();
+                String result = response.Content.ReadAsStringAsync().Result;
+                result = Regex.Replace(result, @"(?<![\\])\\(?![bfnrt""\\])", @"\\");
+#if DEBUG
+                result = JToken.Parse(result).ToString(Newtonsoft.Json.Formatting.Indented);
+#endif
+                var deserializedObj = JsonConvert.DeserializeObject<TendersList_RequestResult>(result);
+                if(deserializedObj?.Data == null) continue;
+                tendersAndStates.AddRange(deserializedObj.Data.Select(x => new TenderState(x.TenderId, i)));
+            }
+            tendersAndStates = tendersAndStates.OrderBy(x => x.TenderNo).ToList();
+            return tendersAndStates;
+        }
+
+        public TenderProcesStageInfo GetTenderStageInfo(Int32 tenderNo)
+        {
+            return GetAsData<TenderProcesStageInfo>($"tender/getStatus?id={tenderNo}");
         }
     }
 
     public static class Ext_HttpUtils
     {
-        public static List<String> AddHttpParameter(this List<String> parametersList, String paramName, EStageOfTenderProcess? paramValue)
+        public static List<String> AddHttpParameter(this List<String> parametersList, String paramName, ETenderProcessStage? paramValue)
         {
             if(paramValue != null) parametersList.Add($"{paramName}={(Int32)paramValue}");
             return parametersList;

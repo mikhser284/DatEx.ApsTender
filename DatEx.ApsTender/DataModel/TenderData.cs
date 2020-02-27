@@ -68,7 +68,7 @@ namespace DatEx.ApsTender.DataModel
         /// <summary> Валюта тендера </summary>
         [JsonProperty("tenderCurrency", Order = 15)]
         [JsonConverter(typeof(StringEnumConverter))]
-        public ECurrencyType Currency { get; set; }
+        public ETenderCurrencyType Currency { get; set; }
 
         /// <summary> Курс валюты к UAH </summary>
         [JsonProperty("tenderCurrencyRate", Order = 16)]
