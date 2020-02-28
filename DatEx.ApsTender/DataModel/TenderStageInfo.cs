@@ -1,23 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 
 namespace DatEx.ApsTender.DataModel
 {
-    public class TenderProcesStageInfo
+    public class RequestInfo_TenderStageInfo
     {
         [JsonProperty("success")]
-        public Boolean IsSuccess { get; set; }
+        public Boolean RequestIsSuccess { get; set; }
 
         [JsonProperty("data")]
-        public Data Data { get; set; }
+        public TenderStageInfo RequestData { get; set; }
     }
 
-    public class Data
+    public class TenderStageInfo
     {
         [JsonProperty("tenderNumber")]
-        public String TenderNo { get; set; }
+        public Int32 TenderNo { get; set; }
 
         [JsonProperty("tenderUuid")]
         public String TenderUuid { get; set; }
@@ -39,6 +40,11 @@ namespace DatEx.ApsTender.DataModel
 
         [JsonProperty("members")]
         public List<TenderStageMember> TenderProcessStageMembers { get; set; }
+
+        public override String ToString()
+        {
+            return $"Tender #{TenderNo,-4} (round #{TenderRoundNo}, {TenderProcessStage,-32}) — Ids of members: {String.Join(",", TenderProcessStageMembers)}";
+        }
     }
 
     public class TenderStageMember
@@ -54,6 +60,8 @@ namespace DatEx.ApsTender.DataModel
         
         [JsonProperty("lastName")]
         public String LastName { get; set; }
+
+        public override String ToString() => $"{LastName} {FirstName} {MiddleName} (Id = {UserId})";
     }
 
 }

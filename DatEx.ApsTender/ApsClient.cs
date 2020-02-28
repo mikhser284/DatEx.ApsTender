@@ -88,6 +88,7 @@ namespace DatEx.ApsTender
 
         public List<TenderState> GetTendersAndTheirStates(Int32 itemsPerPage = 10_000)
         {
+            List<TenderState> tendersAndStates = new List<TenderState>();
             Task<HttpResponseMessage>[] requests = new Task<HttpResponseMessage>[10];
             for(Int32 i = 0; i <= 9 ; i++)
             {
@@ -95,7 +96,6 @@ namespace DatEx.ApsTender
                 requests[i] = HttpClient.GetAsync($"tender/listProcess?process={processStage}&limit={itemsPerPage}");
             }
             Task.WaitAll(requests);
-            List<TenderState> tendersAndStates = new List<TenderState>();
             for(Int32 i = 0; i <= 9; i++)
             {
                 HttpResponseMessage response = requests[i].Result;
@@ -113,9 +113,36 @@ namespace DatEx.ApsTender
             return tendersAndStates;
         }
 
-        public TenderProcesStageInfo GetTenderStageInfo(Int32 tenderNo)
+        public List<TenderStageInfo> GetTendersStageInfo(List<Int32> tendersNumers)
         {
-            return GetAsData<TenderProcesStageInfo>($"tender/getStatus?id={tenderNo}");
+            List<TenderStageInfo> tendersStageInfo = new List<TenderStageInfo>();
+            if(tendersNumers == null || tendersNumers.Count == 0) return tendersStageInfo;
+            Task<HttpResponseMessage>[] requests = new Task<HttpResponseMessage>[tendersNumers.Count];
+            for(Int32 i = 0; i < tendersNumers.Count; i++)
+            {
+                Int32 tenderNo = tendersNumers[i];
+                requests[i] = HttpClient.GetAsync($"tender/getStatus?id={tenderNo}");
+            }
+            Task.WaitAll(requests);
+            for(Int32 i = 0; i < tendersNumers.Count; i++)
+            {
+                HttpResponseMessage response = requests[i].Result;
+                response.EnsureSuccessStatusCode();
+                String result = response.Content.ReadAsStringAsync().Result;
+                result = Regex.Replace(result, @"(?<![\\])\\(?![bfnrt""\\])", @"\\");
+#if DEBUG
+                result = JToken.Parse(result).ToString(Newtonsoft.Json.Formatting.Indented);
+#endif
+                RequestInfo_TenderStageInfo deserializedObj = JsonConvert.DeserializeObject<RequestInfo_TenderStageInfo>(result);
+                if(deserializedObj?.RequestData == null) continue;
+                tendersStageInfo.Add(deserializedObj.RequestData);
+            }
+            return tendersStageInfo;
+        }
+
+        public RequestInfo_TenderStageInfo GetTenderStageInfo(Int32 tenderNo)
+        {
+            return GetAsData<RequestInfo_TenderStageInfo>($"tender/getStatus?id={tenderNo}");
         }
     }
 

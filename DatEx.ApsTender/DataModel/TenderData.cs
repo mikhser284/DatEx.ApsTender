@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace DatEx.ApsTender.DataModel
@@ -39,19 +40,19 @@ namespace DatEx.ApsTender.DataModel
 
         /// <summary> Название компании по которой проводится тендер </summary>
         [JsonProperty("companyName", Order = 8)]
-        public string CompanyName { get; set; }
+        public String CompanyName { get; set; }
 
         /// <summary> Id номенклатурной категории </summary>
         [JsonProperty("industryId", Order = 9)]
-        public int NomenclatureCategoryId { get; set; }
+        public Int32 NomenclatureCategoryId { get; set; }
 
         /// <summary> Номенклатурная категория </summary>
         [JsonProperty("industryName", Order = 10)]
-        public string NomenclatureCategoryName { get; set; }
+        public String NomenclatureCategoryName { get; set; }
 
         /// <summary> Бюджет тендера (UAH) </summary>
         [JsonProperty("budget", Order = 11)]
-        public int BudgetUAH { get; set; }
+        public Double BudgetUAH { get; set; }
 
         /// <summary> Дата создания </summary>
         [JsonProperty("dateCreate", Order = 12)]
@@ -98,11 +99,11 @@ namespace DatEx.ApsTender.DataModel
 
         /// <summary> Ссылка на таблицу ценовых предложений </summary>
         [JsonProperty("offersEvaluationReportLink", Order = 21)]
-        public string OffersEvaluationReportLink { get; set; }
+        public String OffersEvaluationReportLink { get; set; }
 
         /// <summary> Паспорт тендера </summary>
         [JsonProperty("generalTerms", Order = 23)]
-        public string TenderPassport { get; set; }
+        public String TenderPassport { get; set; }
         
         /// <summary> Режим тендера </summary>
         [JsonProperty("mode", Order = 24)]
@@ -111,15 +112,11 @@ namespace DatEx.ApsTender.DataModel
         /// <summary> Тип тендера </summary>
         [JsonProperty("kind", Order = 25)]
         public Int32 kind { get; set; }
-        public string tenderOwnerPath { get; set; }
+        public String tenderOwnerPath { get; set; }
 
         /// <summary> Лоты тендера </summary>
         [JsonProperty("lots", Order = 26)]
         public List<TenderLot> TenderLots { get; set; }
-
-
-
-
 
         /// <summary> Ссылка на протокол тендера </summary>
         [JsonProperty("protocolLink")]
@@ -156,6 +153,14 @@ namespace DatEx.ApsTender.DataModel
         /// <summary> Прикрепленные файлы </summary>
         [JsonProperty("ownerFiles")]
         public List<AttachedFile> OwnerFiles { get; set; }
+
+        
+        public override String ToString()
+        {
+            return $"Тендер #{TenderNumber,-4} от {TenderCreatedAt:yyyy.MM.dd HH:mm} ({AuthorName}), round #{TenderRoundNumber}, {TenderRoundType}, {TenderRoundAccessibility}, procStage: {TenderProcessStage}; "
+                + $"\n   {CompanyName} — {NomenclatureCategoryName}; "
+                + $"\n   {TenderName} ({Currency}, {CurrencyRate:0.00}) — {TenderLots?.FirstOrDefault()?.LotItems?.Count}";
+        }
     }
 
 
