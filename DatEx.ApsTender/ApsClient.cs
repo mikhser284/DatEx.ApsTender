@@ -113,18 +113,18 @@ namespace DatEx.ApsTender
             return tendersAndStates;
         }
 
-        public List<TenderStageInfo> GetTendersStageInfo(List<Int32> tendersNumers)
+        public List<TenderStageInfo> GetTendersStageInfo(List<Int32> tendersNumbers)
         {
             List<TenderStageInfo> tendersStageInfo = new List<TenderStageInfo>();
-            if(tendersNumers == null || tendersNumers.Count == 0) return tendersStageInfo;
-            Task<HttpResponseMessage>[] requests = new Task<HttpResponseMessage>[tendersNumers.Count];
-            for(Int32 i = 0; i < tendersNumers.Count; i++)
+            if(tendersNumbers == null || tendersNumbers.Count == 0) return tendersStageInfo;
+            Task<HttpResponseMessage>[] requests = new Task<HttpResponseMessage>[tendersNumbers.Count];
+            for(Int32 i = 0; i < tendersNumbers.Count; i++)
             {
-                Int32 tenderNo = tendersNumers[i];
+                Int32 tenderNo = tendersNumbers[i];
                 requests[i] = HttpClient.GetAsync($"tender/getStatus?id={tenderNo}");
             }
             Task.WaitAll(requests);
-            for(Int32 i = 0; i < tendersNumers.Count; i++)
+            for(Int32 i = 0; i < tendersNumbers.Count; i++)
             {
                 HttpResponseMessage response = requests[i].Result;
                 response.EnsureSuccessStatusCode();
@@ -140,9 +140,31 @@ namespace DatEx.ApsTender
             return tendersStageInfo;
         }
 
-        public RequestInfo_TenderStageInfo GetTenderStageInfo(Int32 tenderNo)
+        public List<TenderData> GetTendersData(List<Int32> tendersNumbers)
         {
-            return GetAsData<RequestInfo_TenderStageInfo>($"tender/getStatus?id={tenderNo}");
+            List<TenderData> tendersData = new List<TenderData>();
+            if(tendersNumbers == null || tendersNumbers.Count == 0) return tendersData;
+            Task<HttpResponseMessage>[] requests = new Task<HttpResponseMessage>[tendersNumbers.Count];
+            for(Int32 i = 0; i < tendersNumbers.Count; i++)
+            {
+                Int32 tenderNo = tendersNumbers[i];
+                requests[i] = HttpClient.GetAsync($"tender/get?id={tenderNo}");
+            }
+            Task.WaitAll(requests);
+            for(Int32 i = 0; i < tendersNumbers.Count; i++)
+            {
+                HttpResponseMessage response = requests[i].Result;
+                response.EnsureSuccessStatusCode();
+                String result = response.Content.ReadAsStringAsync().Result;
+                result = Regex.Replace(result, @"(?<![\\])\\(?![bfnrt""\\])", @"\\");
+#if DEBUG
+                result = JToken.Parse(result).ToString(Newtonsoft.Json.Formatting.Indented);
+#endif
+                RequestResult<TenderData> deserializedObj = JsonConvert.DeserializeObject<RequestResult<TenderData>>(result);
+                if(deserializedObj == null || deserializedObj.IsSuccess != true) continue;
+                tendersData.Add(deserializedObj.Data);
+            }
+            return tendersData;
         }
     }
 

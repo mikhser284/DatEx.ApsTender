@@ -95,7 +95,7 @@ namespace DatEx.ApsTender.DataModel
 
         /// <summary> Стадия процесса </summary>
         [JsonProperty("process", Order = 21)]
-        public Int32 TenderProcessStage { get; set; }
+        public ETenderProcessStage TenderProcessStage { get; set; }
 
         /// <summary> Ссылка на таблицу ценовых предложений </summary>
         [JsonProperty("offersEvaluationReportLink", Order = 21)]
@@ -157,9 +157,13 @@ namespace DatEx.ApsTender.DataModel
         
         public override String ToString()
         {
-            return $"Тендер #{TenderNumber,-4} от {TenderCreatedAt:yyyy.MM.dd HH:mm} ({AuthorName}), round #{TenderRoundNumber}, {TenderRoundType}, {TenderRoundAccessibility}, procStage: {TenderProcessStage}; "
-                + $"\n   {CompanyName} — {NomenclatureCategoryName}; "
-                + $"\n   {TenderName} ({Currency}, {CurrencyRate:0.00}) — {TenderLots?.FirstOrDefault()?.LotItems?.Count}";
+            return $"ТЕНДЕР #{TenderNumber} от {TenderCreatedAt:yyyy.MM.dd HH:mm} ({AuthorName}) — { TenderName};"
+                + $"\n   Тур #{TenderRoundNumber} ({TenderRoundAccessibility.AsString()}, {TenderRoundType.AsString()}),"
+                + $"\n   {TenderProcessStage.AsString()};"
+                + $"\n   Компания: {CompanyName};"
+                + $"\n   Номенклатурная категория: {NomenclatureCategoryName};"
+                + $"\n   Валюта: { Currency}, { CurrencyRate: 0.00};"
+                + $"\n   Позиций: {TenderLots?.FirstOrDefault()?.LotItems?.Count} шт.;";
         }
     }
 

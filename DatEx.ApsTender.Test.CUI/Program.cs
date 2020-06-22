@@ -7,7 +7,6 @@ using static DatEx.ApsTender.ApsClient;
 
 namespace DatEx.ApsTender.Test.CUI
 {
-    [System.Runtime.InteropServices.Guid("2EE98138-547F-4322-8B4E-F3F680ED7482")]
     class Program
     {
         static AppSettings AppConfig = AppSettings.Load();
@@ -15,15 +14,10 @@ namespace DatEx.ApsTender.Test.CUI
 
         static void Main(string[] args)
         {
-            //var tenderData = ApsClient.GetTenderData(447);
-
-            //return; // ———————————————————————————————————
-
-
             List<TenderState> tendersAndStates = ApsClient.GetTendersAndTheirStates();
             List<TenderStageInfo> tendersStageInfo = new List<TenderStageInfo>();
 
-            foreach(var page in tendersAndStates.Where(x => x.ProcessState != ETenderProcessStage.St9_TenderClosed).Paginate(20))
+            foreach(var page in tendersAndStates.Where(x => x.ProcessState != ETenderProcessStage.St9_TenderClosed).Paginate(10))
             {
                 List<TenderStageInfo> tendersStageInfoPage = ApsClient.GetTendersStageInfo(page.Select(x => x.TenderNo).ToList());
                 foreach(var tenderStageInfo in tendersStageInfoPage) Console.WriteLine(tenderStageInfo);
@@ -31,16 +25,19 @@ namespace DatEx.ApsTender.Test.CUI
             }
             Dictionary<Int32, TenderStageInfo> tenderStageInfoDict = tendersStageInfo.ToDictionary(k => k.TenderNo);
 
-            List<TenderData> tendersData = new List<TenderData>();
-            foreach(var item in tendersStageInfo)
+            foreach(var idsPage in tenderStageInfoDict.Keys.Paginate(10))
             {
-                Console.WriteLine();
-                var res = ApsClient.GetTenderData(item.TenderNo);
-                
-                if(res?.Data == null) continue;
-                Console.WriteLine(res.Data);
-                Console.WriteLine("   Stage members:\n     " + String.Join("\n     ", tenderStageInfoDict[item.TenderNo].TenderProcessStageMembers));
-                tendersData.Add(res.Data);
+                List<TenderData> tendersData = ApsClient.GetTendersData(idsPage.ToList()).ToList();
+                foreach(TenderData tenderData in tendersData)
+                {
+                    Console.WriteLine();
+                    Int32 membersCount = tenderStageInfoDict[tenderData.TenderNumber].TenderProcessStageMembers.Count;
+
+                    if(tenderData == null) continue;
+                    Console.WriteLine(tenderData);
+                    Console.WriteLine($"   Участники стадии тендера ({membersCount} шт.):\n     " + String.Join("\n     ", 
+                        tenderStageInfoDict[tenderData.TenderNumber].TenderProcessStageMembers.Select(x => $" - {x}")));
+                }                
             }
 
             Console.WriteLine("End");
