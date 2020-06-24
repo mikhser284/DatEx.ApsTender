@@ -157,13 +157,12 @@ namespace DatEx.ApsTender.DataModel
         
         public override String ToString()
         {
-            return $"ТЕНДЕР #{TenderNumber} от {TenderCreatedAt:yyyy.MM.dd HH:mm} ({AuthorName}) — { TenderName};"
+            return $"ТЕНДЕР #{TenderNumber} от {TenderCreatedAt:yyyy.MM.dd HH:mm} ({AuthorName}) — { TenderName} [{NomenclatureCategoryName}];"
                 + $"\n   Тур #{TenderRoundNumber} ({TenderRoundAccessibility.AsString()}, {TenderRoundType.AsString()}),"
                 + $"\n   {TenderProcessStage.AsString()};"
+                + $"\n   ----------------------------------------"
                 + $"\n   Компания: {CompanyName};"
-                + $"\n   Номенклатурная категория: {NomenclatureCategoryName};"
-                + $"\n   Валюта: { Currency}, { CurrencyRate: 0.00};"
-                + $"\n   Позиций: {TenderLots?.FirstOrDefault()?.LotItems?.Count} шт.;";
+                + $"\n   Позиций: {TenderLots?.FirstOrDefault()?.LotItems?.Count} шт., Валюта: { Currency}, { CurrencyRate: 0.00};";
         }
     }
 

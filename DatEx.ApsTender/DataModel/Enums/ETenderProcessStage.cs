@@ -39,15 +39,15 @@ namespace DatEx.ApsTender.DataModel
     {
         private readonly static Dictionary<ETenderProcessStage, String> Enum_String = new Dictionary<ETenderProcessStage, String>
         {
-            { ETenderProcessStage.St1_PassportSetting, "Ст.1 - Паспорт тендера" },
-            { ETenderProcessStage.St2_DocumentationSetting, "Ст.2 - Подготовка документации" },
-            { ETenderProcessStage.St3_CriteriaSetting, "Ст.3 - Корректировка критериев" },
-            { ETenderProcessStage.St4_OffersAccepting, "Ст.4 - Прием предложений" },
-            { ETenderProcessStage.St5_OffersProcessing, "Ст.5 - Обработка данных" },
-            { ETenderProcessStage.St6_OffersProcessingApprovement, "Ст.6 - Согласование обработки" },
-            { ETenderProcessStage.St7_SolutionSelection, "Ст.7 - Выбор решения" },
-            { ETenderProcessStage.St8_SolutionApprovement, "Ст.8 - Утверждение решения" },
-            { ETenderProcessStage.St9_TenderClosed, "Ст.9 - Завершено" },
+            { ETenderProcessStage.St1_PassportSetting, "Ст. #1 - Паспорт тендера" },
+            { ETenderProcessStage.St2_DocumentationSetting, "Ст. #2 - Подготовка документации" },
+            { ETenderProcessStage.St3_CriteriaSetting, "Ст. #3 - Корректировка критериев" },
+            { ETenderProcessStage.St4_OffersAccepting, "Ст. #4 - Прием предложений" },
+            { ETenderProcessStage.St5_OffersProcessing, "Ст. #5 - Обработка данных" },
+            { ETenderProcessStage.St6_OffersProcessingApprovement, "Ст. #6 - Согласование обработки" },
+            { ETenderProcessStage.St7_SolutionSelection, "Ст. #7 - Выбор решения" },
+            { ETenderProcessStage.St8_SolutionApprovement, "Ст. #8 - Утверждение решения" },
+            { ETenderProcessStage.St9_TenderClosed, "Ст. #9 - Завершено" },
         };
 
         public static String AsString(this ETenderProcessStage enumValue) => Enum_String[enumValue];

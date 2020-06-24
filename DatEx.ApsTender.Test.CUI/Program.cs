@@ -17,7 +17,7 @@ namespace DatEx.ApsTender.Test.CUI
             List<TenderState> tendersAndStates = ApsClient.GetTendersAndTheirStates();
             List<TenderStageInfo> tendersStageInfo = new List<TenderStageInfo>();
 
-            foreach(var page in tendersAndStates.Where(x => x.ProcessState != ETenderProcessStage.St9_TenderClosed).Paginate(10))
+            foreach(var page in tendersAndStates.Where(x => x.TenderNo > 468 && x.ProcessState != ETenderProcessStage.St9_TenderClosed).Paginate(10))
             {
                 List<TenderStageInfo> tendersStageInfoPage = ApsClient.GetTendersStageInfo(page.Select(x => x.TenderNo).ToList());
                 foreach(var tenderStageInfo in tendersStageInfoPage) Console.WriteLine(tenderStageInfo);

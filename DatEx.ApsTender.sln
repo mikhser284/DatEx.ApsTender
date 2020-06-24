@@ -11,6 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 	ProjectSection(SolutionItems) = preProject
 		_Documentation\API. APS tender. Rest services V2 2017.11.21.pdf = _Documentation\API. APS tender. Rest services V2 2017.11.21.pdf
 		_Documentation\API. APS tender. Soap services 2017.11.10.pdf = _Documentation\API. APS tender. Soap services 2017.11.10.pdf
+		Tasks.txt = Tasks.txt
 	EndProjectSection
 EndProject
 Global
