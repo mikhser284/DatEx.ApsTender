@@ -28,6 +28,11 @@ namespace DatEx.ApsTender.DataModel
 
         [JsonProperty("offersUrlEx")]
         public String OffersUrlEx { get; set; }
+
+        public override String ToString()
+        {
+            return $"      {NomenclatureId,10} | {Name,-50} | {Quantity,15} | {MeasureUnitName,-10} | {OffersUrl}";
+        }
     }
 
 }

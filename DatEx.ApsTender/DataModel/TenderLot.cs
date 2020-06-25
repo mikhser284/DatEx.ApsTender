@@ -1,9 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using Newtonsoft.Json;
-
+﻿
 namespace DatEx.ApsTender.DataModel
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Security.Cryptography.X509Certificates;
+    using DatEx.ApsTender.DataModel.Enums;
+    using Newtonsoft.Json;
+
+
+
     public class TenderLot
     {
         [JsonProperty("lotNumber")]
@@ -16,7 +21,7 @@ namespace DatEx.ApsTender.DataModel
         public Int32 StageNumber { get; set; }
 
         [JsonProperty("lotState")]
-        public Int32 LotState { get; set; }
+        public ELogStateName LotState { get; set; }
 
         [JsonProperty("lotResultNote")]
         public String LotResultNote { get; set; }
@@ -32,6 +37,14 @@ namespace DatEx.ApsTender.DataModel
 
         [JsonProperty("items")]
         public List<TenderLotItem> LotItems { get; set; }
+
+        public override String ToString()
+        {
+            String str = $"{LotName} — {LotStateName} (Лот № {LotNumber}, Стадия № {StageNumber})";
+            str += $"\n   Примечания: {LotResultNote}";
+            str += $"\n   Отчет по лоту: {LotReport}";
+            return str;
+        }
     }
 
 }

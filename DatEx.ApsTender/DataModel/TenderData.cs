@@ -162,8 +162,10 @@ namespace DatEx.ApsTender.DataModel
                 + $"\n   {TenderProcessStage.AsString()};"
                 + $"\n   ----------------------------------------"
                 + $"\n   Компания: {CompanyName};"
-                + $"\n   Позиций: {TenderLots?.FirstOrDefault()?.LotItems?.Count} шт., Валюта: { Currency}, { CurrencyRate: 0.00};";
+                + $"\n   Позиций: {TenderLots?.FirstOrDefault()?.LotItems?.Count} шт., Валюта: { Currency} ({ CurrencyRate: 0.00});";
         }
+
+        
     }
 
 

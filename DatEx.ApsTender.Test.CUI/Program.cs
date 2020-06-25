@@ -14,10 +14,16 @@ namespace DatEx.ApsTender.Test.CUI
 
         static void Main(string[] args)
         {
+            F01_GetTendersInfo();
+        }
+
+        public static void F01_GetTendersInfo()
+        {
             List<TenderState> tendersAndStates = ApsClient.GetTendersAndTheirStates();
             List<TenderStageInfo> tendersStageInfo = new List<TenderStageInfo>();
 
-            foreach(var page in tendersAndStates.Where(x => x.TenderNo > 468 && x.ProcessState != ETenderProcessStage.St9_TenderClosed).Paginate(10))
+            //foreach(var page in tendersAndStates.Where(x => x.TenderNo > 468 && x.ProcessState != ETenderProcessStage.St9_TenderClosed).Paginate(10))
+            foreach(var page in tendersAndStates.Where(x => x.TenderNo > 468).Paginate(10))
             {
                 List<TenderStageInfo> tendersStageInfoPage = ApsClient.GetTendersStageInfo(page.Select(x => x.TenderNo).ToList());
                 foreach(var tenderStageInfo in tendersStageInfoPage) Console.WriteLine(tenderStageInfo);
@@ -35,12 +41,22 @@ namespace DatEx.ApsTender.Test.CUI
 
                     if(tenderData == null) continue;
                     Console.WriteLine(tenderData);
-                    Console.WriteLine($"   Участники стадии тендера ({membersCount} шт.):\n     " + String.Join("\n     ", 
+                    Console.WriteLine($"   Участники стадии тендера ({membersCount} шт.):\n     " + String.Join("\n     ",
                         tenderStageInfoDict[tenderData.TenderNumber].TenderProcessStageMembers.Select(x => $" - {x}")));
-                }                
-            }
+                    
+                    Console.WriteLine($"   Лоты тендера:\n");
+                    foreach(var tenderLot in tenderData.TenderLots)
+                    {
+                        Console.WriteLine($"{tenderLot.ToString()}");
 
-            Console.WriteLine("End");
+                        foreach(var item in tenderLot.LotItems.OrderBy(x => x.Name).ThenBy(x => x.NomenclatureId).ThenByDescending(x => x.Quantity))
+                        {
+                            Console.WriteLine($"{item.ToString()}");
+                        }
+                    }
+                    
+                }
+            }
         }
     }
 }
