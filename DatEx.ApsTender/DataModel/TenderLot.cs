@@ -33,7 +33,7 @@ namespace DatEx.ApsTender.DataModel
         public String LotReport { get; set; }
 
         [JsonProperty("criteria")]
-        public List<TenderCriteria> Criteria { get; set; }
+        public List<TenderCriteria> LotCriteria { get; set; }
 
         [JsonProperty("items")]
         public List<TenderLotItem> LotItems { get; set; }

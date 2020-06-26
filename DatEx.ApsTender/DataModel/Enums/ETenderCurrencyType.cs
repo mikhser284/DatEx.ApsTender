@@ -1,7 +1,10 @@
-﻿using System.Runtime.Serialization;
-
+﻿
 namespace DatEx.ApsTender.DataModel
 {
+    using System.Runtime.Serialization;
+
+
+
     /// <summary> Валюта тендера </summary>
     public enum ETenderCurrencyType
     {

@@ -10,6 +10,7 @@ namespace DatEx.ApsTender.DataModel
 
         [JsonProperty("name")]
         public String Name { get; set; }
-    }
 
+        public override String ToString() => $"{Name} ({Id})";
+    }
 }

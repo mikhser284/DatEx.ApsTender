@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace DatEx.ApsTender.DataModel
@@ -15,13 +16,21 @@ namespace DatEx.ApsTender.DataModel
         public Int32 NomenclatureId { get; set; }
 
         [JsonProperty("nmcUuid")]
-        public String NomenclatureUuid { get; set; }
+        public Guid NomenclatureUuid { get; set; }
 
         [JsonProperty("qty")]
         public Double Quantity { get; set; }
 
         [JsonProperty("tenderItemUuid")]
-        public String TenderItemUuid { get; set; }
+        public Guid TenderItemUuid { get; set; }
+
+        [JsonIgnore]
+        public List<TenderLotItemOffers> Offers { get; set; }
+
+        public void RetreiveOffers(ApsClient apsClient)
+        {
+            Offers = apsClient.GetLotItemOffers(TenderItemUuid);
+        }
 
         [JsonProperty("offersUrl")]
         public String OffersUrl { get; set; }
@@ -31,7 +40,7 @@ namespace DatEx.ApsTender.DataModel
 
         public override String ToString()
         {
-            return $"      {NomenclatureId,10} | {Name,-50} | {Quantity,15} | {MeasureUnitName,-10} | {OffersUrl}";
+            return $"      {NomenclatureId,15} ({TenderItemUuid}) | {Name,-50} | {Quantity,10} | {MeasureUnitName,-10} | {OffersUrlEx}";
         }
     }
 

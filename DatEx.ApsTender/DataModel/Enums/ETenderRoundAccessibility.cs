@@ -1,9 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
-
-namespace DatEx.ApsTender.DataModel
+﻿namespace DatEx.ApsTender.DataModel
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Runtime.Serialization;
+
+
+
     /// <summary> Доступность тура тендера (Тип публикации тура тендера) </summary>
     public enum ETenderRoundAccessibility
     {

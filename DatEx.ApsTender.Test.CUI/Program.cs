@@ -14,6 +14,7 @@ namespace DatEx.ApsTender.Test.CUI
 
         static void Main(string[] args)
         {
+            //ApsClient.SkipApprovementSecurityService(468, "Автоматическое согласование");
             F01_GetTendersInfo();
         }
 
@@ -23,7 +24,7 @@ namespace DatEx.ApsTender.Test.CUI
             List<TenderStageInfo> tendersStageInfo = new List<TenderStageInfo>();
 
             //foreach(var page in tendersAndStates.Where(x => x.TenderNo > 468 && x.ProcessState != ETenderProcessStage.St9_TenderClosed).Paginate(10))
-            foreach(var page in tendersAndStates.Where(x => x.TenderNo > 468).Paginate(10))
+            foreach(var page in tendersAndStates.Where(x => x.TenderNo == 468).Paginate(10))
             {
                 List<TenderStageInfo> tendersStageInfoPage = ApsClient.GetTendersStageInfo(page.Select(x => x.TenderNo).ToList());
                 foreach(var tenderStageInfo in tendersStageInfoPage) Console.WriteLine(tenderStageInfo);
@@ -49,12 +50,27 @@ namespace DatEx.ApsTender.Test.CUI
                     {
                         Console.WriteLine($"{tenderLot.ToString()}");
 
-                        foreach(var item in tenderLot.LotItems.OrderBy(x => x.Name).ThenBy(x => x.NomenclatureId).ThenByDescending(x => x.Quantity))
+                        Console.WriteLine($"   Критерии лота:\n");
+                        foreach(TenderCriteria item in tenderLot.LotCriteria)
+                        {
+                            Console.WriteLine($"      - {item.ToString()}");
+                        }
+
+                        Console.WriteLine($"   Позиции лота:\n");
+                        foreach(TenderLotItem item in tenderLot.LotItems.OrderBy(x => x.Name).ThenBy(x => x.NomenclatureId).ThenByDescending(x => x.Quantity))
                         {
                             Console.WriteLine($"{item.ToString()}");
+                            item.RetreiveOffers(ApsClient);
+                            foreach(TenderLotItemOffers offer in item.Offers)
+                            {
+                                Console.WriteLine(offer.ToString(2));
+                                foreach(TenderCriteriaAnswer criteriaAnswer in offer.TenderCriteriaAnswers)
+                                {
+                                    Console.WriteLine(criteriaAnswer.ToString(3));
+                                }
+                            }
                         }
-                    }
-                    
+                    }                    
                 }
             }
         }

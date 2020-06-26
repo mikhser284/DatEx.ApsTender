@@ -4,9 +4,11 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DatEx.ApsTender.DataModel;
+using DatEx.ApsTender.DataModel.Enums;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -14,6 +16,8 @@ namespace DatEx.ApsTender
 {
     public class ApsClient
     {
+        public const Int32 IndentWidth = 3;
+
         private readonly HttpClient HttpClient;
 
         public ApsClient(AppSettings appSettings)
@@ -28,7 +32,6 @@ namespace DatEx.ApsTender
             httpClient.DefaultRequestHeaders.Accept.Clear();
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", appSettings.ApsConnectorAuthInfoInBase64String);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            //httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
             return httpClient;
         }
 
@@ -64,6 +67,13 @@ namespace DatEx.ApsTender
             //
             return GetAsData<RequestResult<TenderData>>("tender/get".AsParametrizedHttpRequest(parameters));
         }
+
+        public List<TenderLotItemOffers> GetLotItemOffers(Guid lotItemGuid)
+        {
+            List<TenderLotItemOffers> offers = GetAsData<List<TenderLotItemOffers>>($"tender/getoffers?uuid={lotItemGuid.ToString().ToUpper()}");
+            return offers;
+        }
+
 
         public TendersList_RequestResult GetTendersOnStage(ETenderProcessStage? stageOfTenderProcess = null, Int32 itemsPerPage = 10_000)
         {
@@ -165,6 +175,19 @@ namespace DatEx.ApsTender
                 tendersData.Add(deserializedObj.Data);
             }
             return tendersData;
+        }
+
+        public String SkipApprovementSecurityService(Int32 tenderNumber, String remarks)
+        {
+            Int32 userId = 1283;
+            Approvement apprInfo = Approvement.New(tenderNumber, ETenderProcessStage.St6_OffersProcessingApprovement, userId, EApprovementSolution.Approved, remarks);
+            StringContent stringContent = new StringContent(JsonConvert.SerializeObject(apprInfo), Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = HttpClient.PostAsync("tender/approve", stringContent).Result;
+            response.EnsureSuccessStatusCode();
+            String result = response.Content.ReadAsStringAsync().Result;
+            result = Regex.Replace(result, @"(?<![\\])\\(?![bfnrt""\\])", @"\\");
+            return JToken.Parse(result).ToString(Formatting.Indented);
         }
     }
 

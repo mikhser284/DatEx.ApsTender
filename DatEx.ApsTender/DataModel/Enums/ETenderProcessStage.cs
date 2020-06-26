@@ -1,9 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace DatEx.ApsTender.DataModel
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Text;
+
+
+
     /// <summary> Стадия тендерного процесса </summary>
     public enum ETenderProcessStage
     {

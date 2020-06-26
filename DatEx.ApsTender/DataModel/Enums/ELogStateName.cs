@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace DatEx.ApsTender.DataModel.Enums
+﻿namespace DatEx.ApsTender.DataModel.Enums
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Text;
+
+
     public enum ELogStateName
     {
         WithoutSolution = 0,
