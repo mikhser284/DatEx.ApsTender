@@ -35,7 +35,7 @@ namespace DatEx.ApsTender.DataModel
 
         public String ToString(Int32 indentLevel)
         {
-            String indent = new String(' ', indentLevel * ApsClient.IndentWidth);
+            String indent = Ext_String.GetIndent(indentLevel);
             String isWinner = IsWinner.AsString("-", "V", " ");
             return $"{indent}{isWinner}   {SupplierName} (ЕДРПОУ: {Edrpou}, Id: {SupplierId})";
         }

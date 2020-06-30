@@ -1,6 +1,7 @@
 ﻿
 namespace DatEx.ApsTender.DataModel
 {
+    using DatEx.ApsTender.Helpers;
     using Newtonsoft.Json;
     using System;
 
@@ -28,7 +29,7 @@ namespace DatEx.ApsTender.DataModel
 
         public String ToString(Int32 indentLevel)
         {
-            String indent = new String(' ', indentLevel * ApsClient.IndentWidth);
+            String indent = Ext_String.GetIndent(indentLevel);
             String file = String.IsNullOrEmpty(FileUrl) ? "" : $" (File url: {FileUrl})";
             return $"{indent} - {Name} = {Value}{file}";
         }

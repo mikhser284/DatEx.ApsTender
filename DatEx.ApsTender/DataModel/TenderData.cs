@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using DatEx.ApsTender.Helpers;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
@@ -154,18 +155,19 @@ namespace DatEx.ApsTender.DataModel
         [JsonProperty("ownerFiles")]
         public List<AttachedFile> OwnerFiles { get; set; }
 
-        
-        public override String ToString()
-        {
-            return $"ТЕНДЕР #{TenderNumber} от {TenderCreatedAt:yyyy.MM.dd HH:mm} ({AuthorName}) — { TenderName} [{NomenclatureCategoryName}];"
-                + $"\n   Тур #{TenderRoundNumber} ({TenderRoundAccessibility.AsString()}, {TenderRoundType.AsString()}),"
-                + $"\n   {TenderProcessStage.AsString()};"
-                + $"\n   ----------------------------------------"
-                + $"\n   Компания: {CompanyName};"
-                + $"\n   Позиций: {TenderLots?.FirstOrDefault()?.LotItems?.Count} шт., Валюта: { Currency} ({ CurrencyRate: 0.00});";
-        }
+        public override String ToString() => ToString(0);
 
-        
+
+        public String ToString(Int32 indentLevel)
+        {
+            String indent = Ext_String.GetIndent(indentLevel);
+            return $"{indent}ТЕНДЕР #{TenderNumber} от {TenderCreatedAt:yyyy.MM.dd HH:mm} ({AuthorName}) — { TenderName} [{NomenclatureCategoryName}];"
+                + $"\n{indent}Тур #{TenderRoundNumber} ({TenderRoundAccessibility.AsString()}, {TenderRoundType.AsString()}),"
+                + $"\n{indent}{TenderProcessStage.AsString()};"
+                + $"\n{indent}----------------------------------------"
+                + $"\n{indent}Компания: {CompanyName};"
+                + $"\n{indent}Позиций: {TenderLots?.FirstOrDefault()?.LotItems?.Count} шт., Валюта: {Currency} ({CurrencyRate: 0.00});";
+        }        
     }
 
 

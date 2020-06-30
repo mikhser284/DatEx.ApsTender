@@ -1,23 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using DatEx.ApsTender.DataModel;
-using DatEx.ApsTender.DataModel.Enums;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-
-namespace DatEx.ApsTender
+﻿namespace DatEx.ApsTender
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Net.Http.Headers;
+    using System.Text;
+    using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
+    using DatEx.ApsTender.DataModel;
+    using DatEx.ApsTender.DataModel.Enums;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
+    using DatEx.ApsTender.Helpers;
+
+
+
     public class ApsClient
     {
-        public const Int32 IndentWidth = 3;
-
         private readonly HttpClient HttpClient;
 
         public ApsClient(AppSettings appSettings)
@@ -53,9 +53,9 @@ namespace DatEx.ApsTender
             response.EnsureSuccessStatusCode();
             String result = response.Content.ReadAsStringAsync().Result;
             result = Regex.Replace(result, @"(?<![\\])\\(?![bfnrt""\\])", @"\\");
-            #if DEBUG
+#if DEBUG
             result = JToken.Parse(result).ToString(Newtonsoft.Json.Formatting.Indented);
-            #endif
+#endif
             return JsonConvert.DeserializeObject<T>(result);
         }
 
@@ -78,7 +78,7 @@ namespace DatEx.ApsTender
         public TendersList_RequestResult GetTendersOnStage(ETenderProcessStage? stageOfTenderProcess = null, Int32 itemsPerPage = 10_000)
         {
             List<String> parameters = new List<string>();
-            parameters.AddHttpParameter("process", stageOfTenderProcess);            
+            parameters.AddHttpParameter("process", stageOfTenderProcess);
             parameters.AddHttpParameter("limit", itemsPerPage);
             //
             return GetAsData<TendersList_RequestResult>("tender/listProcess".AsParametrizedHttpRequest(parameters));
@@ -100,13 +100,13 @@ namespace DatEx.ApsTender
         {
             List<TenderState> tendersAndStates = new List<TenderState>();
             Task<HttpResponseMessage>[] requests = new Task<HttpResponseMessage>[10];
-            for(Int32 i = 0; i <= 9 ; i++)
+            for (Int32 i = 0; i <= 9; i++)
             {
                 Int32 processStage = i;
                 requests[i] = HttpClient.GetAsync($"tender/listProcess?process={processStage}&limit={itemsPerPage}");
             }
             Task.WaitAll(requests);
-            for(Int32 i = 0; i <= 9; i++)
+            for (Int32 i = 0; i <= 9; i++)
             {
                 HttpResponseMessage response = requests[i].Result;
                 response.EnsureSuccessStatusCode();
@@ -116,7 +116,7 @@ namespace DatEx.ApsTender
                 result = JToken.Parse(result).ToString(Newtonsoft.Json.Formatting.Indented);
 #endif
                 var deserializedObj = JsonConvert.DeserializeObject<TendersList_RequestResult>(result);
-                if(deserializedObj?.Data == null) continue;
+                if (deserializedObj?.Data == null) continue;
                 tendersAndStates.AddRange(deserializedObj.Data.Select(x => new TenderState(x.TenderId, i)));
             }
             tendersAndStates = tendersAndStates.OrderBy(x => x.TenderNo).ToList();
@@ -126,15 +126,15 @@ namespace DatEx.ApsTender
         public List<TenderStageInfo> GetTendersStageInfo(List<Int32> tendersNumbers)
         {
             List<TenderStageInfo> tendersStageInfo = new List<TenderStageInfo>();
-            if(tendersNumbers == null || tendersNumbers.Count == 0) return tendersStageInfo;
+            if (tendersNumbers == null || tendersNumbers.Count == 0) return tendersStageInfo;
             Task<HttpResponseMessage>[] requests = new Task<HttpResponseMessage>[tendersNumbers.Count];
-            for(Int32 i = 0; i < tendersNumbers.Count; i++)
+            for (Int32 i = 0; i < tendersNumbers.Count; i++)
             {
                 Int32 tenderNo = tendersNumbers[i];
                 requests[i] = HttpClient.GetAsync($"tender/getStatus?id={tenderNo}");
             }
             Task.WaitAll(requests);
-            for(Int32 i = 0; i < tendersNumbers.Count; i++)
+            for (Int32 i = 0; i < tendersNumbers.Count; i++)
             {
                 HttpResponseMessage response = requests[i].Result;
                 response.EnsureSuccessStatusCode();
@@ -144,24 +144,38 @@ namespace DatEx.ApsTender
                 result = JToken.Parse(result).ToString(Newtonsoft.Json.Formatting.Indented);
 #endif
                 RequestInfo_TenderStageInfo deserializedObj = JsonConvert.DeserializeObject<RequestInfo_TenderStageInfo>(result);
-                if(deserializedObj?.RequestData == null) continue;
+                if (deserializedObj?.RequestData == null) continue;
                 tendersStageInfo.Add(deserializedObj.RequestData);
             }
             return tendersStageInfo;
         }
 
+        public TenderStageInfo GetTenderStageInfo(Int32 tenderNo)
+        {
+            HttpResponseMessage response = HttpClient.GetAsync($"tender/getStatus?id={tenderNo}").Result;
+            response.EnsureSuccessStatusCode();
+            String result = response.Content.ReadAsStringAsync().Result;
+            result = Regex.Replace(result, @"(?<![\\])\\(?![bfnrt""\\])", @"\\");
+#if DEBUG
+            result = JToken.Parse(result).ToString(Newtonsoft.Json.Formatting.Indented);
+#endif
+            RequestInfo_TenderStageInfo deserializedObj = JsonConvert.DeserializeObject<RequestInfo_TenderStageInfo>(result);
+            return deserializedObj?.RequestData;
+        }
+
+
         public List<TenderData> GetTendersData(List<Int32> tendersNumbers)
         {
             List<TenderData> tendersData = new List<TenderData>();
-            if(tendersNumbers == null || tendersNumbers.Count == 0) return tendersData;
+            if (tendersNumbers == null || tendersNumbers.Count == 0) return tendersData;
             Task<HttpResponseMessage>[] requests = new Task<HttpResponseMessage>[tendersNumbers.Count];
-            for(Int32 i = 0; i < tendersNumbers.Count; i++)
+            for (Int32 i = 0; i < tendersNumbers.Count; i++)
             {
                 Int32 tenderNo = tendersNumbers[i];
                 requests[i] = HttpClient.GetAsync($"tender/get?id={tenderNo}");
             }
             Task.WaitAll(requests);
-            for(Int32 i = 0; i < tendersNumbers.Count; i++)
+            for (Int32 i = 0; i < tendersNumbers.Count; i++)
             {
                 HttpResponseMessage response = requests[i].Result;
                 response.EnsureSuccessStatusCode();
@@ -171,61 +185,56 @@ namespace DatEx.ApsTender
                 result = JToken.Parse(result).ToString(Newtonsoft.Json.Formatting.Indented);
 #endif
                 RequestResult<TenderData> deserializedObj = JsonConvert.DeserializeObject<RequestResult<TenderData>>(result);
-                if(deserializedObj == null || deserializedObj.IsSuccess != true) continue;
+                if (deserializedObj == null || deserializedObj.IsSuccess != true) continue;
                 tendersData.Add(deserializedObj.Data);
             }
             return tendersData;
         }
 
-        public String SkipApprovementSecurityService(Int32 tenderNumber, String remarks)
-        {
-            Int32 userId = 1283;
-            Approvement apprInfo = Approvement.New(tenderNumber, ETenderProcessStage.St6_OffersProcessingApprovement, userId, EApprovementSolution.Approved, remarks);
-            StringContent stringContent = new StringContent(JsonConvert.SerializeObject(apprInfo), Encoding.UTF8, "application/json");
 
-            HttpResponseMessage response = HttpClient.PostAsync("tender/approve", stringContent).Result;
-            response.EnsureSuccessStatusCode();
-            String result = response.Content.ReadAsStringAsync().Result;
-            result = Regex.Replace(result, @"(?<![\\])\\(?![bfnrt""\\])", @"\\");
-            return JToken.Parse(result).ToString(Formatting.Indented);
+
+        public TenderStageInfo SkipApprovementOfSecurityService(TenderData tenderData, String remarks = default(String))
+        {
+            if (tenderData is null) throw new ArgumentNullException(nameof(tenderData));
+            TenderStageInfo tenderStageInfo = null;
+            String rem = !String.IsNullOrWhiteSpace(remarks) ? remarks : "Пропуск задачи \"Заключение специалиста СБ\"";
+            ETenderProcessStage suitableProcessStage = ETenderProcessStage.St6_OffersProcessingApprovement;
+            Int32 tenderNumber = tenderData.TenderNumber;
+
+            tenderStageInfo = GetTenderStageInfo(tenderNumber);
+            while (tenderStageInfo.TenderProcessStage == suitableProcessStage)
+            {
+                if (tenderStageInfo is null) throw new NullReferenceException(nameof(tenderStageInfo));
+                if (tenderStageInfo.ApprovementModelId != 10) throw new ArgumentException("Эта функция расчитана на использование совместно с моделью согласования \"ApsProxy\" (Id == 10), "
+                    + $"но текущая модель согласования тендера \"{tenderStageInfo.ApprovementModelName}\" (Id == {tenderStageInfo.ApprovementModelId})");
+
+                foreach (TenderStageMember stageMember in tenderStageInfo.TenderProcessStageMembers)
+                {
+#if DEBUG
+                    Console.Write($"Тендер №{tenderStageInfo.TenderNo}, тур {tenderStageInfo.TenderRoundNo} ({tenderStageInfo.TenderProcessStage.AsString()}) — Пропуск задачи пользователя {stageMember}: ");
+#endif
+                    Approvement apprInfo = Approvement.New(tenderNumber, suitableProcessStage, stageMember.UserId, EApprovementSolution.Approved, rem);
+                    StringContent stringContent = new StringContent(JsonConvert.SerializeObject(apprInfo), Encoding.UTF8, "application/json");
+                    HttpResponseMessage response = HttpClient.PostAsync("tender/approve", stringContent).Result;
+                    response.EnsureSuccessStatusCode();
+
+                    String result = response.Content.ReadAsStringAsync().Result;
+                    result = Regex.Replace(result, @"(?<![\\])\\(?![bfnrt""\\])", @"\\");
+                    OperationResult opResult = JsonConvert.DeserializeObject<OperationResult>(result);
+#if DEBUG
+                    Console.WriteLine(opResult.IsSuccesful ? "выполнено" : "НЕ УДАЛОСЬ ВЫПОЛНИТЬ");
+#endif
+                }
+                tenderStageInfo = GetTenderStageInfo(tenderNumber);
+            }
+            return tenderStageInfo;
         }
     }
 
-    public static class Ext_HttpUtils
+
+    public class OperationResult
     {
-        public static List<String> AddHttpParameter(this List<String> parametersList, String paramName, ETenderProcessStage? paramValue)
-        {
-            if(paramValue != null) parametersList.Add($"{paramName}={(Int32)paramValue}");
-            return parametersList;
-        }
-
-        public static List<String> AddHttpParameter(this List<String> parametersList, String paramName, DateTime? paramValue)
-        {
-            if(paramValue != null) parametersList.Add($"{paramName}={paramValue:yyyy-MM-dd}T{paramValue:HH:mm:ss}Z");
-            return parametersList;
-        }
-
-        public static List<String> AddHttpParameter(this List<String> parametersList, String paramName, String paramValue)
-        {
-            if(!String.IsNullOrEmpty(paramValue)) parametersList.Add($"{paramName}={paramValue}");
-            return parametersList;
-        }
-
-        public static List<String> AddHttpParameter(this List<String> parametersList, String paramName, Int32? paramValue)
-        {
-            if(paramValue != null) parametersList.Add($"{paramName}={paramValue}");
-            return parametersList;
-        }
-
-        public static List<String> AddHttpParameter(this List<String> parametersList, String paramName, Boolean? paramValue)
-        {
-            if(paramValue != null) parametersList.Add($"{paramName}={(paramValue == false ? 0 : 1)}");
-            return parametersList;
-        }
-
-        public static String AsParametrizedHttpRequest(this String request, List<String> parametersList)
-        {
-            return request + ((parametersList != null && parametersList.Count > 0) ? $"?{String.Join('&', parametersList)}" : "");
-        }
+        [JsonProperty("success")]
+        public Boolean IsSuccesful { get; set; }
     }
 }
