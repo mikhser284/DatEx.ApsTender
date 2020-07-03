@@ -60,29 +60,31 @@ namespace DatEx.ApsTender.DataModel
                 ;
         }
 
-        public static Boolean operator ==(TenderStageInfo a, TenderStageInfo b)
-        {
-            if(a.TenderNo == b.TenderNo
-                && a.TenderUuid == b.TenderUuid
-                && a.TenderRoundNo == b.TenderRoundNo
-                && a.TenderProcessStage == b.TenderProcessStage
-                && a.ApprovementModelId == b.ApprovementModelId
-                && a.ApprovementModelName == b.ApprovementModelName
-                && a.TenderProcessStageMembers.Count == b.TenderProcessStageMembers.Count)
-            {
-                if (a.TenderProcessStageMembers.Count == 0) return true;
-                HashSet<Int32> usersIds = new HashSet<int>(a.TenderProcessStageMembers.Select(x => x.UserId));
-                foreach (var member in b.TenderProcessStageMembers) if (!usersIds.Contains(member.UserId)) return false;
+        //public static Boolean operator ==(TenderStageInfo a, TenderStageInfo b)
+        //{
+        //    if(a == null && b == null) return true;
+        //    if((a == null && b != null) || (a != null && b == null)) return false;
+        //    if(a.TenderNo == b.TenderNo
+        //        && a.TenderUuid == b.TenderUuid
+        //        && a.TenderRoundNo == b.TenderRoundNo
+        //        && a.TenderProcessStage == b.TenderProcessStage
+        //        && a.ApprovementModelId == b.ApprovementModelId
+        //        && a.ApprovementModelName == b.ApprovementModelName
+        //        && a.TenderProcessStageMembers.Count == b.TenderProcessStageMembers.Count)
+        //    {
+        //        if (a.TenderProcessStageMembers.Count == 0) return true;
+        //        HashSet<Int32> usersIds = new HashSet<int>(a.TenderProcessStageMembers.Select(x => x.UserId));
+        //        foreach (var member in b.TenderProcessStageMembers) if (!usersIds.Contains(member.UserId)) return false;
 
-                return true;
-            }
-            return false;
-        }
+        //        return true;
+        //    }
+        //    return false;
+        //}
 
-        public static Boolean operator !=(TenderStageInfo a, TenderStageInfo b)
-        {
-            return !(a == b);
-        }
+        //public static Boolean operator !=(TenderStageInfo a, TenderStageInfo b)
+        //{
+        //    return !(a == b);
+        //}
     }
 
     public class TenderStageMember

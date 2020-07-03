@@ -9,6 +9,12 @@ namespace DatEx.ApsTender.DataModel
     [JsonObject(Title = "criteriaValue")]
     public class TenderCriteriaAnswer
     {
+        public Int32 TenderLotNo { get; set; }
+
+        public Int32? TenderLotItem { get; set; }
+
+        public Int32? SupplierId { get; set; }
+
         /// <summary> Id (в APS) </summary>
         [JsonProperty("id")]
         public int Id { get; set; }
@@ -24,6 +30,8 @@ namespace DatEx.ApsTender.DataModel
         /// <summary> Идентификатор файла </summary>
         [JsonProperty("fileUrl")]
         public String FileUrl { get; set; }
+
+        public Boolean IsFile { get => !String.IsNullOrWhiteSpace(FileUrl); }
 
         public override String ToString() => ToString(0);
 

@@ -25,7 +25,7 @@ namespace DatEx.ApsTender.DataModel
         public Guid TenderItemUuid { get; set; }
 
         [JsonIgnore]
-        public List<TenderLotItemOffers> Offers { get; set; }
+        public List<TenderLotItemOffers> Offers { get; set; } = new List<TenderLotItemOffers>();
 
         public void RetreiveOffers(ApsClient apsClient)
         {

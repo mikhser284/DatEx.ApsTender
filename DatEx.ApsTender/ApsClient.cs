@@ -13,8 +13,7 @@
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using DatEx.ApsTender.Helpers;
-
-
+    using System.IO;
 
     public class ApsClient
     {
@@ -42,7 +41,7 @@
             String result = response.Content.ReadAsStringAsync().Result;
             result = Regex.Replace(result, @"(?<![\\])\\(?![bfnrt""\\])", @"\\");
 #if DEBUG
-            result = JToken.Parse(result).ToString(Newtonsoft.Json.Formatting.Indented);
+            result = JToken.Parse(result).ToString(Formatting.Indented);
 #endif
             return result;
         }
@@ -54,7 +53,7 @@
             String result = response.Content.ReadAsStringAsync().Result;
             result = Regex.Replace(result, @"(?<![\\])\\(?![bfnrt""\\])", @"\\");
 #if DEBUG
-            result = JToken.Parse(result).ToString(Newtonsoft.Json.Formatting.Indented);
+            result = JToken.Parse(result).ToString(Formatting.Indented);
 #endif
             return JsonConvert.DeserializeObject<T>(result);
         }
@@ -70,9 +69,38 @@
 
         public List<TenderLotItemOffers> GetLotItemOffers(Guid lotItemGuid)
         {
-            List<TenderLotItemOffers> offers = GetAsData<List<TenderLotItemOffers>>($"tender/getoffers?uuid={lotItemGuid.ToString().ToUpper()}");
+            HttpResponseMessage response = HttpClient.GetAsync($"tender/getoffers?uuid={lotItemGuid.ToString().ToUpper()}").Result;
+            response.EnsureSuccessStatusCode();
+            String result = response.Content.ReadAsStringAsync().Result;
+            result = Regex.Replace(result, @"(?<![\\])\\(?![bfnrt""\\])", @"\\");
+#if DEBUG
+            result = JToken.Parse(result).ToString(Formatting.Indented);
+#endif
+            List<TenderLotItemOffers> offers = null;
+            try
+            {
+                offers = JsonConvert.DeserializeObject<List<TenderLotItemOffers>>(result);
+            }
+            catch(Exception ex)
+            {
+                var requestRes = JsonConvert.DeserializeObject<RequestResult<List<TenderLotItemOffers>>>(result);
+                if(requestRes.IsSuccess == false) offers = new List<TenderLotItemOffers>();
+            }            
             return offers;
         }
+
+        //public async List<TenderLotItemOffers> GetTenderRoundOffers(TenderData tenderData)
+        //{
+        //    if(tenderData == null) throw new ArgumentNullException(nameof(tenderData));
+        //    List<Task<HttpResponseMessage>> requests = new List<Task<HttpResponseMessage>>();
+        //    foreach(var tenderLot in tenderData.TenderLots)
+        //    {
+        //        foreach(TenderLotItem item in tenderLot.LotItems)
+        //        {
+
+        //        }
+        //    }
+        //}
 
 
         public TendersList_RequestResult GetTendersOnStage(ETenderProcessStage? stageOfTenderProcess = null, Int32 itemsPerPage = 10_000)
@@ -193,22 +221,36 @@
 
 
 
-        public TenderStageInfo SkipApprovementOfSecurityService(TenderData tenderData, String remarks = default(String))
+        public TenderStageInfo SkipApprovementOfSecurityService(TenderData tenderData)
         {
-            if (tenderData is null) throw new ArgumentNullException(nameof(tenderData));
+            return MoveTenderNext(tenderData, ETenderProcessStage.St6_OffersProcessingApprovement);
+        }
+
+        public TenderStageInfo SkipApprovementOfTenderComitet(TenderData tenderData)
+        {       
+            return MoveTenderNext(tenderData, ETenderProcessStage.St8_SolutionApprovement);
+        }
+
+        private TenderStageInfo MoveTenderNext(TenderData tenderData, ETenderProcessStage suitableProcessStage)
+        {
+            if(tenderData is null) throw new ArgumentNullException(nameof(tenderData));
             TenderStageInfo tenderStageInfo = null;
-            String rem = !String.IsNullOrWhiteSpace(remarks) ? remarks : "Пропуск задачи \"Заключение специалиста СБ\"";
-            ETenderProcessStage suitableProcessStage = ETenderProcessStage.St6_OffersProcessingApprovement;
-            Int32 tenderNumber = tenderData.TenderNumber;
-
-            tenderStageInfo = GetTenderStageInfo(tenderNumber);
-            while (tenderStageInfo.TenderProcessStage == suitableProcessStage)
+            String rem = suitableProcessStage switch
             {
-                if (tenderStageInfo is null) throw new NullReferenceException(nameof(tenderStageInfo));
-                if (tenderStageInfo.ApprovementModelId != 10) throw new ArgumentException("Эта функция расчитана на использование совместно с моделью согласования \"ApsProxy\" (Id == 10), "
-                    + $"но текущая модель согласования тендера \"{tenderStageInfo.ApprovementModelName}\" (Id == {tenderStageInfo.ApprovementModelId})");
+                ETenderProcessStage.St6_OffersProcessingApprovement => "[API] Пропуск задачи \"Заключение специалиста СБ\"",
+                ETenderProcessStage.St8_SolutionApprovement         => "[API] Пропуск задачи \"Согласование тедерного комитета\" и перенос тендера на следующий тур.",
+                _                                                   => throw new NotImplementedException()
+            };
 
-                foreach (TenderStageMember stageMember in tenderStageInfo.TenderProcessStageMembers)
+            Int32 tenderNumber = tenderData.TenderNumber;
+            tenderStageInfo = GetTenderStageInfo(tenderNumber);
+            while(tenderStageInfo.TenderProcessStage == suitableProcessStage)
+            {
+                if(tenderStageInfo is null) throw new NullReferenceException(nameof(tenderStageInfo));
+                if(tenderStageInfo.ApprovementModelId != 10) throw new ArgumentException("Эта функция расчитана на использование совместно с моделью согласования \"ApsProxy\" (Id == 10), "
+                   + $"но текущая модель согласования тендера \"{tenderStageInfo.ApprovementModelName}\" (Id == {tenderStageInfo.ApprovementModelId})");
+
+                foreach(TenderStageMember stageMember in tenderStageInfo.TenderProcessStageMembers)
                 {
 #if DEBUG
                     Console.Write($"Тендер №{tenderStageInfo.TenderNo}, тур {tenderStageInfo.TenderRoundNo} ({tenderStageInfo.TenderProcessStage.AsString()}) — Пропуск задачи пользователя {stageMember}: ");
@@ -229,6 +271,32 @@
             }
             return tenderStageInfo;
         }
+
+
+        public async Task<Byte[]> GetFile(Guid fileUuid) => await HttpClient.GetByteArrayAsync($"tender/getfile?uuid={fileUuid.ToString()}");
+
+        public async void SaveFileAs(Guid fileUuid, String filePath)
+        {
+            Byte[] fileBody = await GetFile(fileUuid);
+            File.WriteAllBytes(filePath, fileBody);
+        }
+
+        //public async Task<List<Byte[]>> GetCommertialOffersFiles(TenderData tenderData)
+        //{
+        //    if(tenderData == null) throw new ArgumentNullException(nameof(tenderData));
+
+        //    foreach(var lot in tenderData.TenderLots)
+        //    {
+        //        if(lot.LotItems == null || lot.LotItems.Count == 0) continue;
+
+        //        foreach(var lotItem in lot.LotItems)
+        //        {
+        //            //lotItem.TenderItemUuid
+
+        //            HttpClient.Get
+        //        }
+        //    }
+        //}
     }
 
 
