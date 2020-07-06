@@ -9,7 +9,7 @@ namespace DatEx.ApsTender.DataModel
 
 
     [JsonObject(Title = "offer")]
-    public class TenderLotItemOffers
+    public class TenderLotItemOffer
     {
         /// <summary> Id контрагента </summary>
         [JsonProperty("supplierId")]

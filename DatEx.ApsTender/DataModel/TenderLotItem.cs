@@ -1,9 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using Newtonsoft.Json;
-
-namespace DatEx.ApsTender.DataModel
+﻿namespace DatEx.ApsTender.DataModel
 {
+    using System;
+    using System.Collections.Generic;
+    using DatEx.ApsTender.Helpers;
+    using Newtonsoft.Json;
+
+
+
     public class TenderLotItem
     {
         [JsonProperty("itemName")]
@@ -24,24 +27,23 @@ namespace DatEx.ApsTender.DataModel
         [JsonProperty("tenderItemUuid")]
         public Guid TenderItemUuid { get; set; }
 
-        [JsonIgnore]
-        public List<TenderLotItemOffers> Offers { get; set; } = new List<TenderLotItemOffers>();
-
-        public void RetreiveOffers(ApsClient apsClient)
-        {
-            Offers = apsClient.GetLotItemOffers(TenderItemUuid);
-        }
-
         [JsonProperty("offersUrl")]
         public String OffersUrl { get; set; }
 
         [JsonProperty("offersUrlEx")]
         public String OffersUrlEx { get; set; }
 
+        public List<TenderLotItemOffer> Offers { get; set; } = new List<TenderLotItemOffer>();
+
         public override String ToString()
         {
-            return $"      {NomenclatureId,15} ({TenderItemUuid}) | {Name,-50} | {Quantity,10} | {MeasureUnitName,-10} | {OffersUrlEx}";
+            return ToString(0);
+        }
+
+        public String ToString(Int32 indentLevel)
+        {
+            String indent = Ext_String.GetIndent(indentLevel);
+            return $"{indent} {Name,-50} | {Quantity,10} {MeasureUnitName,-10} | {NomenclatureId,6} ({TenderItemUuid})";
         }
     }
-
 }

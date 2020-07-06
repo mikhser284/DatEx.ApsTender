@@ -30,8 +30,16 @@ namespace DatEx.ApsTender.Test.CUI
 
             //Console.WriteLine($"Состояние тендера было изменено: {tenderStateBeforeApprovement != tenderStateAfterApprovement}");
 
-            F01_GetTendersInfo();
+            //F01_GetTendersInfo();
+            ShowTenderInfo(483);
         }
+
+        public static void ShowTenderInfo(Int32 tenderNumber)
+        {
+            TenderData tData = TenderData.RetrieveFullData(ApsClient, tenderNumber);
+            tData.Show();
+        }
+
 
         public static void F01_GetTendersInfo()
         {
@@ -75,15 +83,15 @@ namespace DatEx.ApsTender.Test.CUI
                         foreach(TenderLotItem item in tenderLot.LotItems.OrderBy(x => x.Name).ThenBy(x => x.NomenclatureId).ThenByDescending(x => x.Quantity))
                         {
                             Console.WriteLine($"{item.ToString()}");
-                            item.RetreiveOffers(ApsClient);
-                            foreach(TenderLotItemOffers offer in item.Offers)
-                            {
-                                Console.WriteLine(offer.ToString(2));
-                                foreach(TenderCriteriaAnswer criteriaAnswer in offer.TenderCriteriaAnswers)
-                                {
-                                    Console.WriteLine(criteriaAnswer.ToString(3));
-                                }
-                            }
+                            //item.RetreiveOffers(ApsClient);
+                            //foreach(TenderLotItemOffers offer in item.Offers)
+                            //{
+                            //    Console.WriteLine(offer.ToString(2));
+                            //    foreach(TenderCriteriaAnswer criteriaAnswer in offer.TenderCriteriaAnswers)
+                            //    {
+                            //        Console.WriteLine(criteriaAnswer.ToString(3));
+                            //    }
+                            //}
                         }
                     }                    
                 }

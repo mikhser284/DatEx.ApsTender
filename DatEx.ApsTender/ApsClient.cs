@@ -67,26 +67,55 @@
             return GetAsData<RequestResult<TenderData>>("tender/get".AsParametrizedHttpRequest(parameters));
         }
 
-        public List<TenderLotItemOffers> GetLotItemOffers(Guid lotItemGuid)
+        public List<TenderLotItemOffer> GetLotItemOffers(TenderData tenderData)
         {
-            HttpResponseMessage response = HttpClient.GetAsync($"tender/getoffers?uuid={lotItemGuid.ToString().ToUpper()}").Result;
-            response.EnsureSuccessStatusCode();
-            String result = response.Content.ReadAsStringAsync().Result;
-            result = Regex.Replace(result, @"(?<![\\])\\(?![bfnrt""\\])", @"\\");
+            List<Task> tasks = new List<Task>();
+            List<TenderLotItemOffer> allOffers = new List<TenderLotItemOffer>();
+            foreach(TenderLot lot in tenderData.TenderLots)
+                foreach(TenderLotItem lotItem in lot.LotItems)
+                {
+                    Task<HttpResponseMessage> requestResult = HttpClient.GetAsync($"tender/getoffers?uuid={lotItem.TenderItemUuid.ToString().ToUpper()}");
+                    TenderLot tenderLot = lot;
+                    TenderLotItem tenderLotItem = lotItem;
+                    tasks.Add(requestResult.ContinueWith(x => FinishInitialization(x, tenderLot, tenderLotItem, allOffers)));
+                }
+            Task.WaitAll(tasks.ToArray());
+
+            static void FinishInitialization(Task<HttpResponseMessage> requestResult, TenderLot lot, TenderLotItem lotItem, List<TenderLotItemOffer> allOffers)
+            {
+                HttpResponseMessage response = requestResult.Result;
+                response.EnsureSuccessStatusCode();
+                String result = response.Content.ReadAsStringAsync().Result;
+                result = Regex.Replace(result, @"(?<![\\])\\(?![bfnrt""\\])", @"\\");
 #if DEBUG
-            result = JToken.Parse(result).ToString(Formatting.Indented);
+                result = JToken.Parse(result).ToString(Formatting.Indented);
 #endif
-            List<TenderLotItemOffers> offers = null;
-            try
-            {
-                offers = JsonConvert.DeserializeObject<List<TenderLotItemOffers>>(result);
+                List<TenderLotItemOffer> offers = null;
+                try
+                {
+                    offers = JsonConvert.DeserializeObject<List<TenderLotItemOffer>>(result);
+                    foreach(var item in offers)
+                    {
+                        foreach(var answer in item.TenderCriteriaAnswers)
+                        {
+                            answer.TenderLotItemUuid = lotItem.TenderItemUuid;
+                            lotItem.Offers.Clear();
+                            lotItem.Offers.AddRange(offers);
+                            answer.TenderLotNo = lot.LotNumber;
+                            answer.SupplierId = item.SupplierId;
+                            answer.IsFile = !String.IsNullOrWhiteSpace(answer.FileUrl);
+                        }
+                    }
+                    allOffers.AddRange(offers);
+                }
+                catch(Exception ex)
+                {
+                    var requestRes = JsonConvert.DeserializeObject<RequestResult<List<TenderLotItemOffer>>>(result);
+                    if(requestRes.IsSuccess == false) offers = new List<TenderLotItemOffer>();
+                }
             }
-            catch(Exception ex)
-            {
-                var requestRes = JsonConvert.DeserializeObject<RequestResult<List<TenderLotItemOffers>>>(result);
-                if(requestRes.IsSuccess == false) offers = new List<TenderLotItemOffers>();
-            }            
-            return offers;
+            
+            return allOffers;
         }
 
         //public async List<TenderLotItemOffers> GetTenderRoundOffers(TenderData tenderData)
@@ -281,7 +310,7 @@
             File.WriteAllBytes(filePath, fileBody);
         }
 
-        //public async Task<List<Byte[]>> GetCommertialOffersFiles(TenderData tenderData)
+        //public async Task<List<Byte[]>> GetCommertialOffers(TenderData tenderData)
         //{
         //    if(tenderData == null) throw new ArgumentNullException(nameof(tenderData));
 

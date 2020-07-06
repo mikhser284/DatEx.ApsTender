@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Schema;
 
 namespace DatEx.ApsTender.DataModel
 {
@@ -108,16 +109,14 @@ namespace DatEx.ApsTender.DataModel
         
         /// <summary> Режим тендера </summary>
         [JsonProperty("mode", Order = 24)]
-        public Int32 mode { get; set; }
+        public Int32 Mode { get; set; }
 
         /// <summary> Тип тендера </summary>
         [JsonProperty("kind", Order = 25)]
-        public Int32 kind { get; set; }
-        public String tenderOwnerPath { get; set; }
+        public Int32 Kind { get; set; }
 
-        /// <summary> Лоты тендера </summary>
-        [JsonProperty("lots", Order = 26)]
-        public List<TenderLot> TenderLots { get; set; }
+        [JsonProperty("TenderOwnerPath", Order = 26)]
+        public String TenderOwnerPath { get; set; }
 
         /// <summary> Ссылка на протокол тендера </summary>
         [JsonProperty("protocolLink")]
@@ -155,6 +154,10 @@ namespace DatEx.ApsTender.DataModel
         [JsonProperty("ownerFiles")]
         public List<AttachedFile> OwnerFiles { get; set; }
 
+        /// <summary> Лоты тендера </summary>
+        [JsonProperty("lots", Order = 27)]
+        public List<TenderLot> TenderLots { get; set; }
+
         public override String ToString() => ToString(0);
 
 
@@ -166,7 +169,47 @@ namespace DatEx.ApsTender.DataModel
                 + $"\n{indent}{TenderProcessStage.AsString()};"
                 + $"\n{indent}----------------------------------------"
                 + $"\n{indent}Компания: {CompanyName};"
-                + $"\n{indent}Позиций: {TenderLots?.FirstOrDefault()?.LotItems?.Count} шт., Валюта: {Currency} ({CurrencyRate: 0.00});";
+                + $"\n{indent}Валюта: {Currency} ({CurrencyRate: 0.00});";
+        }
+
+        public void Show()
+        {
+            Int32 indentLevel1 = 0;
+            Int32 indentLevel2 = indentLevel1 + 1;
+            Int32 indentLevel3 = indentLevel2 + 1;
+            String indent1 = Ext_String.GetIndent(indentLevel1);
+            String indent2 = Ext_String.GetIndent(indentLevel2);
+            String indent3 = Ext_String.GetIndent(indentLevel3);
+
+            Console.WriteLine(ToString(indentLevel1));
+
+            Console.WriteLine($"{indent1}■ Лоты тендера:");
+            foreach(var lot in TenderLots)
+            {
+                Console.WriteLine(lot.ToString(indentLevel2));
+                Console.WriteLine($"{indent2}■ Позиции лота ({lot.LotItems?.Count} шт.):");
+                foreach(var lotItem in lot.LotItems)
+                {
+                    Console.WriteLine(lotItem.ToString(indentLevel3));
+                }
+            }            
+        }
+
+        public static TenderData Retrieve(ApsClient apsClient, Int32 tenderNumber)
+        {
+            var requestResult = apsClient.GetTenderData(tenderNumber);
+            if(requestResult.IsSuccess == false) throw new InvalidOperationException($"Error: {requestResult.ErrorCode} — {requestResult.ErrorString}");
+            return requestResult.Data;
+        }
+
+        public static TenderData RetrieveFullData(ApsClient apsClient, Int32 tenderNumber)
+        {
+            var requestResult = apsClient.GetTenderData(tenderNumber);
+            if(requestResult.IsSuccess == false) throw new InvalidOperationException($"Error: {requestResult.ErrorCode} — {requestResult.ErrorString}");
+            TenderData tenderData = requestResult.Data;
+            List<TenderLotItemOffer> offers = apsClient.GetLotItemOffers(tenderData);
+            
+            return tenderData;
         }        
     }
 

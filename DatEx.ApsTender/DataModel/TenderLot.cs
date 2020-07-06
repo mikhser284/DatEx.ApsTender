@@ -3,8 +3,8 @@ namespace DatEx.ApsTender.DataModel
 {
     using System;
     using System.Collections.Generic;
-    using System.Security.Cryptography.X509Certificates;
     using DatEx.ApsTender.DataModel.Enums;
+    using DatEx.ApsTender.Helpers;
     using Newtonsoft.Json;
 
 
@@ -40,9 +40,15 @@ namespace DatEx.ApsTender.DataModel
 
         public override String ToString()
         {
-            String str = $"{LotName} — {LotStateName} (Лот № {LotNumber}, Стадия № {StageNumber})";
-            str += $"\n   Примечания: {LotResultNote}";
-            str += $"\n   Отчет по лоту: {LotReport}";
+            return ToString(0);
+        }
+
+        public String ToString(Int32 indentLevel)
+        {
+            String indent = Ext_String.GetIndent(indentLevel);
+            String str = $"{indent}{LotName} — {LotStateName} (Лот № {LotNumber}, Стадия № {StageNumber})";
+            str += $"\n{indent}Примечания: {LotResultNote}";
+            str += $"\n{indent}Отчет по лоту: {LotReport}";
             return str;
         }
     }
