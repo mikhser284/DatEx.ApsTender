@@ -34,15 +34,17 @@ namespace DatEx.ApsTender.DataModel
         [JsonProperty("fileUrl")]
         public String FileUrl { get; set; }
 
-        public Boolean IsFile { get; set; }
+        [JsonIgnore]
+        public Guid? FileUuid { get; set; }
 
         public override String ToString() => ToString(0);
 
         public String ToString(Int32 indentLevel)
         {
             String indent = Ext_String.GetIndent(indentLevel);
-            String file = String.IsNullOrEmpty(FileUrl) ? "" : $" (File url: {FileUrl})";
-            return $"{indent} - {Name} = {Value}{file}";
+            String file = String.IsNullOrEmpty(FileUrl) ? "" : $"\n{indent}     FILE GUID: {FileUuid}";
+            return $"{indent}- {Name} = {Value}{file}\n{indent}"
+                + $"     TenderLotNo: {TenderLotNo}; TenderLotItemUuid: {TenderLotItemUuid}; SupplierId: {SupplierId}";
         }
     }
 }

@@ -14,6 +14,7 @@
     using Newtonsoft.Json.Linq;
     using DatEx.ApsTender.Helpers;
     using System.IO;
+    using System.Web;
 
     public class ApsClient
     {
@@ -88,7 +89,7 @@
                 String result = response.Content.ReadAsStringAsync().Result;
                 result = Regex.Replace(result, @"(?<![\\])\\(?![bfnrt""\\])", @"\\");
 #if DEBUG
-                result = JToken.Parse(result).ToString(Formatting.Indented);
+                result = JToken.Parse(result).ToString(Formatting.Indented);                
 #endif
                 List<TenderLotItemOffer> offers = null;
                 try
@@ -103,12 +104,16 @@
                             lotItem.Offers.AddRange(offers);
                             answer.TenderLotNo = lot.LotNumber;
                             answer.SupplierId = item.SupplierId;
-                            answer.IsFile = !String.IsNullOrWhiteSpace(answer.FileUrl);
+                            if(!String.IsNullOrEmpty(answer.FileUrl))
+                            {
+                                String queryValue = HttpUtility.ParseQueryString(new Uri(answer.FileUrl).Query).GetValues("uuid").FirstOrDefault();
+                                answer.FileUuid = String.IsNullOrEmpty(queryValue) ? null : ((Guid?)new Guid(queryValue));
+                            }
                         }
                     }
                     allOffers.AddRange(offers);
                 }
-                catch(Exception ex)
+                catch(JsonSerializationException ex)
                 {
                     var requestRes = JsonConvert.DeserializeObject<RequestResult<List<TenderLotItemOffer>>>(result);
                     if(requestRes.IsSuccess == false) offers = new List<TenderLotItemOffer>();
@@ -117,20 +122,6 @@
             
             return allOffers;
         }
-
-        //public async List<TenderLotItemOffers> GetTenderRoundOffers(TenderData tenderData)
-        //{
-        //    if(tenderData == null) throw new ArgumentNullException(nameof(tenderData));
-        //    List<Task<HttpResponseMessage>> requests = new List<Task<HttpResponseMessage>>();
-        //    foreach(var tenderLot in tenderData.TenderLots)
-        //    {
-        //        foreach(TenderLotItem item in tenderLot.LotItems)
-        //        {
-
-        //        }
-        //    }
-        //}
-
 
         public TendersList_RequestResult GetTendersOnStage(ETenderProcessStage? stageOfTenderProcess = null, Int32 itemsPerPage = 10_000)
         {
@@ -302,12 +293,17 @@
         }
 
 
-        public async Task<Byte[]> GetFile(Guid fileUuid) => await HttpClient.GetByteArrayAsync($"tender/getfile?uuid={fileUuid.ToString()}");
+        public async Task<Byte[]> GetFile(Guid fileUuid) => await HttpClient.GetByteArrayAsync($"tender/getfile?uuid={fileUuid.ToString().ToUpper()}");
 
         public async void SaveFileAs(Guid fileUuid, String filePath)
         {
             Byte[] fileBody = await GetFile(fileUuid);
             File.WriteAllBytes(filePath, fileBody);
+        }
+
+        public async Task<Byte[]> GetCommertialOffersFile(Guid fileUuid)
+        {
+            return await HttpClient.GetByteArrayAsync($"file/get?uuid={fileUuid.ToString().ToUpper()}");
         }
 
         //public async Task<List<Byte[]>> GetCommertialOffers(TenderData tenderData)
@@ -323,6 +319,19 @@
         //            //lotItem.TenderItemUuid
 
         //            HttpClient.Get
+        //        }
+        //    }
+        //}
+
+        //public async List<TenderLotItemOffer> GetTenderRoundOffers(TenderData tenderData)
+        //{
+        //    if(tenderData == null) throw new ArgumentNullException(nameof(tenderData));
+        //    List<Task<HttpResponseMessage>> requests = new List<Task<HttpResponseMessage>>();
+        //    foreach(var tenderLot in tenderData.TenderLots)
+        //    {
+        //        foreach(TenderLotItem item in tenderLot.LotItems)
+        //        {
+
         //        }
         //    }
         //}

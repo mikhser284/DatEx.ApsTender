@@ -174,25 +174,44 @@ namespace DatEx.ApsTender.DataModel
 
         public void Show()
         {
-            Int32 indentLevel1 = 0;
-            Int32 indentLevel2 = indentLevel1 + 1;
-            Int32 indentLevel3 = indentLevel2 + 1;
-            String indent1 = Ext_String.GetIndent(indentLevel1);
-            String indent2 = Ext_String.GetIndent(indentLevel2);
-            String indent3 = Ext_String.GetIndent(indentLevel3);
+            String indent0 = Ext_String.GetIndent(0);
+            String indent1 = Ext_String.GetIndent(1);
+            String indent2 = Ext_String.GetIndent(2);
+            String indent3 = Ext_String.GetIndent(3);
 
-            Console.WriteLine(ToString(indentLevel1));
+            Console.WriteLine(ToString(0));
 
-            Console.WriteLine($"{indent1}■ Лоты тендера:");
-            foreach(var lot in TenderLots)
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"{indent0}■ Лоты тендера ({TenderLots.Count} шт.):");
+            foreach(TenderLot lot in TenderLots)
             {
-                Console.WriteLine(lot.ToString(indentLevel2));
-                Console.WriteLine($"{indent2}■ Позиции лота ({lot.LotItems?.Count} шт.):");
-                foreach(var lotItem in lot.LotItems)
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(lot.ToString(1));
+                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.WriteLine($"{indent1}■ Позиции лота ({lot.LotItems?.Count} шт.):");
+                
+                foreach(TenderLotItem lotItem in lot.LotItems)
                 {
-                    Console.WriteLine(lotItem.ToString(indentLevel3));
+                    Console.ForegroundColor = ConsoleColor.Blue;
+                    Console.WriteLine(lotItem.ToString(2));
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine($"{indent2}■ Комерческие предложения ({lotItem.Offers?.Count} шт.):");
+                    Int32 offerNumber = 0;
+                    foreach(TenderLotItemOffer offer in lotItem.Offers)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine($"\n{indent3}КП №:       {++offerNumber}");
+                        Console.WriteLine(offer.ToString(3));
+
+                        foreach(TenderCriteriaAnswer answer in offer.TenderCriteriaAnswers)
+                        {
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine($"{answer.ToString(4)}");
+                        }
+                    }
                 }
             }            
+            Console.ResetColor();
         }
 
         public static TenderData Retrieve(ApsClient apsClient, Int32 tenderNumber)

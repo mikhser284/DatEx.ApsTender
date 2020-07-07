@@ -43,7 +43,10 @@
         public String ToString(Int32 indentLevel)
         {
             String indent = Ext_String.GetIndent(indentLevel);
-            return $"{indent} {Name,-50} | {Quantity,10} {MeasureUnitName,-10} | {NomenclatureId,6} ({TenderItemUuid})";
+            return $"{indent}"
+                + $"Наименование: {Name,-50}\n{indent}"
+                + $"Колличество:  {Quantity} {MeasureUnitName}\n{indent}"
+                + $"Id:           {NomenclatureId} ({TenderItemUuid})";
         }
     }
 }
