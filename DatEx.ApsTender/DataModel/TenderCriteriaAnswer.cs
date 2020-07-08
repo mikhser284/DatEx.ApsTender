@@ -16,7 +16,16 @@ namespace DatEx.ApsTender.DataModel
         public Guid? TenderLotItemUuid { get; set; }
 
         [JsonIgnore]
+        public String TenderLotItemName { get; set; }
+
+        [JsonIgnore]
         public Int32? SupplierId { get; set; }
+
+        [JsonIgnore]
+        public String SupplierEdrpou { get; set; }
+
+        [JsonIgnore]
+        public String SupplierName { get; set; }
 
         /// <summary> Id (в APS) </summary>
         [JsonProperty("id")]
