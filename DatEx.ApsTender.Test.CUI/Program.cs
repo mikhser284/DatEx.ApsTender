@@ -14,23 +14,23 @@ namespace DatEx.ApsTender.Test.CUI
 
         static void Main(string[] args)
         {
-            RequestResult<TenderData> reqResult = ApsClient.GetTenderData(483);
-            if(!reqResult.IsSuccess)
-            {
-                Console.WriteLine("Не удалось получить информацию о состоянии тендера");
-                return;
-            }
-            TenderData tenderData = reqResult.Data;
+            //RequestResult<TenderData> reqResult = ApsClient.GetTenderData(483);
+            //if(!reqResult.IsSuccess)
+            //{
+            //    Console.WriteLine("Не удалось получить информацию о состоянии тендера");
+            //    return;
+            //}
+            //TenderData tenderData = reqResult.Data;
 
-            TenderStageInfo tenderStateBeforeApprovement = ApsClient.GetTenderStageInfo(tenderData.TenderNumber);
-            Console.WriteLine($"Состояние тендера перед пропуском задачи:\n{tenderStateBeforeApprovement}");
+            //TenderStageInfo tenderStateBeforeApprovement = ApsClient.GetTenderStageInfo(tenderData.TenderNumber);
+            //Console.WriteLine($"Состояние тендера перед пропуском задачи:\n{tenderStateBeforeApprovement}");
 
-            TenderStageInfo tenderStateAfterApprovement = ApsClient.SkipTask(tenderData, SkippableTask.St6_ConclusionOfSecurityService);
-            Console.WriteLine($"Состояние тендера после пропуска задачи:\n{tenderStateAfterApprovement}");            
-            Console.WriteLine($"Состояние тендера было изменено: {tenderStateBeforeApprovement != tenderStateAfterApprovement}");
+            //TenderStageInfo tenderStateAfterApprovement = ApsClient.SkipTask(tenderData, SkippableTask.St6_ConclusionOfSecurityService);
+            //Console.WriteLine($"Состояние тендера после пропуска задачи:\n{tenderStateAfterApprovement}");            
+            //Console.WriteLine($"Состояние тендера было изменено: {tenderStateBeforeApprovement != tenderStateAfterApprovement}");
 
-            F01_GetTendersInfo();
-            //ShowTenderInfo(483);
+            //F01_GetTendersInfo();
+            ShowTenderInfo(483);
         }
 
         public static void ShowTenderInfo(Int32 tenderNumber)

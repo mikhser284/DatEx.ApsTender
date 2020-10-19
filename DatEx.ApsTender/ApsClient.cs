@@ -257,6 +257,8 @@
 
         public void GetFilesFromCommertialOffers(TenderData tenderData, String workDirectory)
         {
+            if (!Directory.Exists(workDirectory)) Directory.CreateDirectory(workDirectory);
+
             List<TenderCriteriaAnswer> answersWithFile = tenderData.TenderLots
                 .SelectMany(lot => lot.LotItems)
                 .SelectMany(lotItem => lotItem.Offers)

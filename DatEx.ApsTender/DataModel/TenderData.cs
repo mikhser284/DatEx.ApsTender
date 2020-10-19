@@ -227,7 +227,7 @@ namespace DatEx.ApsTender.DataModel
             if(requestResult.IsSuccess == false) throw new InvalidOperationException($"Error: {requestResult.ErrorCode} — {requestResult.ErrorString}");
             TenderData tenderData = requestResult.Data;
             List<TenderLotItemOffer> offers = apsClient.GetTenderRoundOffers(tenderData);
-            apsClient.GetFilesFromCommertialOffers(tenderData, @"D:\_APS");
+            apsClient.GetFilesFromCommertialOffers(tenderData, @"C:\_APS Tender");
 
             return tenderData;
         }        
