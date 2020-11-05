@@ -238,8 +238,47 @@
             }
         }
 
+        private TenderStageInfo SkipTask(TenderData tenderData, ETenderProcessStage suitableProcessStage)
+        {
+            if (tenderData is null) throw new ArgumentNullException(nameof(tenderData));
+            TenderStageInfo tenderStageInfo = null;
+            String rem = suitableProcessStage switch
+            {
+                ETenderProcessStage.St6_OffersProcessingApprovement => "[API] Пропуск задачи \"Заключение специалиста СБ\"",
+                ETenderProcessStage.St8_SolutionApprovement => "[API] Пропуск задачи \"Согласование тедерного комитета\" и перенос тендера на следующий тур.",
+                _ => throw new NotImplementedException()
+            };
 
-        
+            Int32 tenderNumber = tenderData.TenderNumber;
+            tenderStageInfo = GetTenderStageInfo(tenderNumber);
+            while (tenderStageInfo.TenderProcessStage == suitableProcessStage)
+            {
+                if (tenderStageInfo is null) throw new NullReferenceException(nameof(tenderStageInfo));
+                if (tenderStageInfo.ApprovementModelId != 10) throw new ArgumentException("Эта функция расчитана на использование совместно с моделью согласования \"ApsProxy\" (Id == 10), "
+                    + $"но текущая модель согласования тендера \"{tenderStageInfo.ApprovementModelName}\" (Id == {tenderStageInfo.ApprovementModelId})");
+
+                foreach (TenderStageMember stageMember in tenderStageInfo.TenderProcessStageMembers)
+                {
+#if DEBUG
+                    Console.Write($"Тендер №{tenderStageInfo.TenderNo}, тур {tenderStageInfo.TenderRoundNo} ({tenderStageInfo.TenderProcessStage.AsString()}) — Пропуск задачи пользователя {stageMember}: ");
+#endif
+                    Approvement apprInfo = Approvement.New(tenderNumber, suitableProcessStage, stageMember.UserId, EApprovementSolution.Approved, rem);
+                    StringContent stringContent = new StringContent(JsonConvert.SerializeObject(apprInfo), Encoding.UTF8, "application/json");
+                    HttpResponseMessage response = HttpClient.PostAsync("tender/approve", stringContent).Result;
+                    response.EnsureSuccessStatusCode();
+
+                    String result = response.Content.ReadAsStringAsync().Result;
+                    result = Regex.Replace(result, @"(?<![\\])\\(?![bfnrt""\\])", @"\\");
+                    OperationResult opResult = JsonConvert.DeserializeObject<OperationResult>(result);
+#if DEBUG
+                    Console.WriteLine(opResult.IsSuccesful ? "выполнено" : "НЕ УДАЛОСЬ ВЫПОЛНИТЬ");
+#endif
+                }
+                tenderStageInfo = GetTenderStageInfo(tenderNumber);
+            }
+            return tenderStageInfo;
+        }
+
 
 
         public async Task<Byte[]> GetFile(Guid fileUuid) => await HttpClient.GetByteArrayAsync($"tender/getfile?uuid={fileUuid.ToString().ToUpper()}");
@@ -255,6 +294,10 @@
             return await HttpClient.GetByteArrayAsync($"file/get?uuid={tenderCriteriaAnswer.FileUuid.ToString().ToUpper()}");
         }
 
+
+        /// <summary> Получить файлы комерческих предложений контрагентов </summary>
+        /// <param name="tenderData"> Данные тендера (объект) </param>
+        /// <param name="workDirectory"> Папка для хранения полученных файлов </param>
         public void GetFilesFromCommertialOffers(TenderData tenderData, String workDirectory)
         {
             if (!Directory.Exists(workDirectory)) Directory.CreateDirectory(workDirectory);
@@ -344,49 +387,11 @@
 #if DEBUG
             result = JToken.Parse(result).ToString(Formatting.Indented);
 #endif
-            return JsonConvert.DeserializeObject<T>(result);
+            var res = JsonConvert.DeserializeObject<T>(result);
+            return res;
         }
 
-        private TenderStageInfo SkipTask(TenderData tenderData, ETenderProcessStage suitableProcessStage)
-        {
-            if(tenderData is null) throw new ArgumentNullException(nameof(tenderData));
-            TenderStageInfo tenderStageInfo = null;
-            String rem = suitableProcessStage switch
-            {
-                ETenderProcessStage.St6_OffersProcessingApprovement => "[API] Пропуск задачи \"Заключение специалиста СБ\"",
-                ETenderProcessStage.St8_SolutionApprovement         => "[API] Пропуск задачи \"Согласование тедерного комитета\" и перенос тендера на следующий тур.",
-                _                                                   => throw new NotImplementedException()
-            };
-
-            Int32 tenderNumber = tenderData.TenderNumber;
-            tenderStageInfo = GetTenderStageInfo(tenderNumber);
-            while(tenderStageInfo.TenderProcessStage == suitableProcessStage)
-            {
-                if(tenderStageInfo is null) throw new NullReferenceException(nameof(tenderStageInfo));
-                if(tenderStageInfo.ApprovementModelId != 10) throw new ArgumentException("Эта функция расчитана на использование совместно с моделью согласования \"ApsProxy\" (Id == 10), "
-                   + $"но текущая модель согласования тендера \"{tenderStageInfo.ApprovementModelName}\" (Id == {tenderStageInfo.ApprovementModelId})");
-
-                foreach(TenderStageMember stageMember in tenderStageInfo.TenderProcessStageMembers)
-                {
-#if DEBUG
-                    Console.Write($"Тендер №{tenderStageInfo.TenderNo}, тур {tenderStageInfo.TenderRoundNo} ({tenderStageInfo.TenderProcessStage.AsString()}) — Пропуск задачи пользователя {stageMember}: ");
-#endif
-                    Approvement apprInfo = Approvement.New(tenderNumber, suitableProcessStage, stageMember.UserId, EApprovementSolution.Approved, rem);
-                    StringContent stringContent = new StringContent(JsonConvert.SerializeObject(apprInfo), Encoding.UTF8, "application/json");
-                    HttpResponseMessage response = HttpClient.PostAsync("tender/approve", stringContent).Result;
-                    response.EnsureSuccessStatusCode();
-
-                    String result = response.Content.ReadAsStringAsync().Result;
-                    result = Regex.Replace(result, @"(?<![\\])\\(?![bfnrt""\\])", @"\\");
-                    OperationResult opResult = JsonConvert.DeserializeObject<OperationResult>(result);
-#if DEBUG
-                    Console.WriteLine(opResult.IsSuccesful ? "выполнено" : "НЕ УДАЛОСЬ ВЫПОЛНИТЬ");
-#endif
-                }
-                tenderStageInfo = GetTenderStageInfo(tenderNumber);
-            }
-            return tenderStageInfo;
-        }
+        
     }
 
     public enum SkippableTask
