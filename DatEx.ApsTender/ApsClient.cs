@@ -275,6 +275,7 @@
 #endif
                 }
                 tenderStageInfo = GetTenderStageInfo(tenderNumber);
+                break;
             }
             return tenderStageInfo;
         }

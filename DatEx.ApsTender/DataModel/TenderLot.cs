@@ -21,13 +21,13 @@ namespace DatEx.ApsTender.DataModel
         public Int32 StageNumber { get; set; }
 
         [JsonProperty("lotState")]
-        public ELogStateName LotState { get; set; }
-
-        [JsonProperty("lotResultNote")]
-        public String LotResultNote { get; set; }
+        public ELotSolution LotState { get; set; }
 
         [JsonProperty("lotStateName")]
         public String LotStateName { get; set; }
+
+        [JsonProperty("lotResultNote")]
+        public String LotResultNote { get; set; }
 
         [JsonProperty("lotReport")]
         public String LotReport { get; set; }
